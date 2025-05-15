@@ -1,0 +1,26 @@
+# Visual Studio generated files
+.vs/
+*.suo
+*.user
+*.sln.docstates
+*.testsettings
+*.build.g.cs
+*.cache
+*.dbmdl
+
+# Build output
+bin/
+obj/
+publish/
+
+# Package restore cache
+packages/
+*.nupkg
+*.psmdcp
+
+# User-specific files
+*.csproj.user
+Properties/launchSettings.json
+
+# Tooling
+.editorconfig.user
