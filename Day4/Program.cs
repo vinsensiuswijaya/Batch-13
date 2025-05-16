@@ -83,6 +83,27 @@ public class Rectangle : IShape
     }
 }
 
+public delegate void PriceChangedHandler(decimal oldPrice, decimal newPrice);
+
+public class Broadcaster
+{
+    public event PriceChangedHandler PriceChanged;
+
+    public void ChangePrice(decimal newPrice)
+    {
+        decimal oldPrice = 100m;
+        PriceChanged?.Invoke(oldPrice, newPrice);
+    }
+}
+
+public class Subscriber
+{
+    public void OnPriceChanged(decimal oldPrice, decimal newPrice)
+    {
+        Console.WriteLine($"Price changed from {oldPrice} to {newPrice}");
+    }
+}
+
 public class Program
 {
     public static void Main()
@@ -94,5 +115,14 @@ public class Program
         Rectangle rect2 = new Rectangle(5, 7, ShapeColor.Green);
         rect1.Draw();
         rect2.Draw();
+
+        Broadcaster broadcaster = new Broadcaster();
+        Subscriber subscriber = new Subscriber();
+
+        broadcaster.PriceChanged += subscriber.OnPriceChanged;
+
+        broadcaster.ChangePrice(120m);
+
+        broadcaster.PriceChanged -= subscriber.OnPriceChanged;
     }
 }
