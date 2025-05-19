@@ -24,7 +24,6 @@
             }
             Console.WriteLine();
         }
-        
 
         // Demo Func
         List<int> numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -43,5 +42,22 @@
         t += PlusThree;
         int result = t(4);
         Console.WriteLine($"result: {result}");
+
+        double Divide(int x, int y) => x / y;
+
+        double dividedNum;
+        try
+        {
+            dividedNum = Divide(4, 0);
+            Console.WriteLine(dividedNum);
+        }
+        catch (DivideByZeroException)
+        {
+            Console.WriteLine("Cannot divide by zero");
+        }
+        catch (System.Exception)
+        {
+            Console.WriteLine("Error");
+        }
     }
 }
