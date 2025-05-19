@@ -16,11 +16,11 @@
             Console.WriteLine(result);
             return result;
         }
-        void PrintAll(List<int> nums)
+        void PrintAll<T>(List<T> items)
         {
-            foreach (int num in nums)
+            foreach (T item in items)
             {
-                Console.Write($"{num} ");
+                Console.Write($"{item} ");
             }
             Console.WriteLine();
         }
@@ -32,10 +32,10 @@
         Func<int, bool> isDivisibleByFifteen = num => num % 15 == 0;
 
         List<int> num2 = numbers.Where(isDivisibleByThree).ToList();
-        PrintAll(num2);
+        PrintAll<int>(num2);
 
         List<int> num3 = numbers.Select(multipleByFive).Where(isDivisibleByFifteen).ToList();
-        PrintAll(num3);
+        PrintAll<int>(num3);
 
         // Demo multicast delegate
         Transformer t = Square;
@@ -43,6 +43,7 @@
         int result = t(4);
         Console.WriteLine($"result: {result}");
 
+        // Demo try catch
         double Divide(int x, int y) => x / y;
 
         double dividedNum;
@@ -59,5 +60,16 @@
         {
             Console.WriteLine("Error");
         }
+
+        // Demo Nullable Value Type
+        int? x = null;
+        int y = x ?? 0;
+        Console.WriteLine(y);
+
+        bool? n = null;
+        bool? f = false;
+        bool? tru = true;
+
+        Console.WriteLine(n | tru);
     }
 }
