@@ -91,6 +91,7 @@ public class GameController
     public IPlayer currentPlayer;
     private int _currentPlayerIndex;
     private List<Position> _directions;
+    private bool isGameOver;
     public GameController(List<IPlayer> players, IBoard board)
     {
         Players = players;
@@ -98,7 +99,17 @@ public class GameController
     }
     public void StartGame()
     {
-        // TODO
+        Board.Initialize();
+        _currentPlayerIndex = 0;
+        currentPlayer = Players[_currentPlayerIndex];
+        isGameOver = false;
+        while (!isGameOver)
+        {
+            DisplayBoard();
+            Console.WriteLine($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input position to play (row, col): ");
+            SwitchPlayer();
+            isGameOver = true;
+        }
     }
     public bool GameOver()
     {
@@ -127,14 +138,20 @@ public class GameController
     {
         // TODO
     }
-    public void SwitchPlayer() { }
+    public void SwitchPlayer()
+    {
+        if (_currentPlayerIndex == Players.Count - 1) _currentPlayerIndex = 0;
+        else _currentPlayerIndex++;
+        currentPlayer = Players[_currentPlayerIndex];
+    }
+    
     public void CountPieces(out int black, out int white)
     {
         // TODO
         black = 0;
         white = 0;
     }
-    public void Display()
+    public void DisplayBoard()
     {
         for (int row = 0; row <= Board.Size; row++)
         {
@@ -145,6 +162,7 @@ public class GameController
             }
             if (row < Board.Size) Console.WriteLine($"{row + 1} ");
         }
+        Console.WriteLine();
     }
     private char PieceColorMap(PieceColor color) // Helper method for Display to map the piece's color to a character 
     {
@@ -161,6 +179,13 @@ class Program
 {
     static void Main()
     {
-        // TODO
+        Board board = new Board(8);
+        List<IPlayer> players = new List<IPlayer>();
+        Player player1 = new Player("Player 1", PieceColor.Black);
+        Player player2 = new Player("Player 2", PieceColor.White);
+        players.Add(player1);
+        players.Add(player2);
+        GameController game = new GameController(players, board);
+        game.StartGame();
     }
 }
