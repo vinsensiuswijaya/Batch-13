@@ -59,18 +59,28 @@ public class Board : IBoard
     public int Size { get; }
     public Board(int size)
     {
-        // TODO Board
+        Size = size;
+        IPiece[,] grid = new IPiece[Size, Size];
+        for (int i = 0; i < Size; i++)
+        {
+            for (int j = 0; j < Size; j++)
+            {
+                grid[i, j] = new Piece(PieceColor.None);
+            }
+        }
+        Grid = grid;
     }
     public void Initialize()
     {
-        // TODO
-        Console.WriteLine("TODO Initialize : Board");
+        int midGrid = (int)Size / 2;
+        Grid[midGrid - 1, midGrid - 1] = new Piece(PieceColor.White);
+        Grid[midGrid - 1, midGrid] = new Piece(PieceColor.Black);
+        Grid[midGrid, midGrid - 1] = new Piece(PieceColor.Black);
+        Grid[midGrid, midGrid] = new Piece(PieceColor.White);
     }
     public bool IsInBounds(Position pos)
     {
-        // TODO
-        Console.WriteLine("TODO IsInBound : Board");
-        return true;
+        return pos.Col > 0 && pos.Col < Size && pos.Row > 0 && pos.Row < Size;
     }
 }
 
