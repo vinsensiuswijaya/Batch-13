@@ -106,8 +106,25 @@ public class GameController
         while (!isGameOver)
         {
             DisplayBoard();
-            Console.WriteLine($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input position to play (row, col): ");
+            int row;
+            int col;
+            string inputRow;
+            // string[] splitInput;
+            string inputCol;
+            bool isSuccessInputRow = false, isSuccessInputCol = false;
+            while (!isSuccessInputRow || !isSuccessInputCol)
+            {
+                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
+                inputRow = Console.ReadLine();
+                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
+                inputCol = Console.ReadLine();
+                isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
+                isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
+                Position pos = new Position(row, col);
+                Console.WriteLine($"row: {pos.Row}, col: {pos.Col}");
+            }
             SwitchPlayer();
+            // int inputCol = int.Parse(split[1].Trim());
             isGameOver = true;
         }
     }
@@ -158,9 +175,9 @@ public class GameController
             for (int col = 0; col <= Board.Size; col++)
             {
                 if (row < Board.Size && col < Board.Size) Console.Write($"{PieceColorMap(Board.Grid[row, col].Color)} ");
-                if (row == Board.Size && row != col) Console.Write($"{col + 1} ");
+                if (row == Board.Size && row != col) Console.Write($"{col} ");
             }
-            if (row < Board.Size) Console.WriteLine($"{row + 1} ");
+            if (row < Board.Size) Console.WriteLine($"{row} ");
         }
         Console.WriteLine();
     }
