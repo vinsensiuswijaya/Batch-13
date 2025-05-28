@@ -134,6 +134,27 @@ public class GameController
         black = 0;
         white = 0;
     }
+    public void Display()
+    {
+        for (int row = 0; row <= Board.Size; row++)
+        {
+            for (int col = 0; col <= Board.Size; col++)
+            {
+                if (row < Board.Size && col < Board.Size) Console.Write($"{PieceColorMap(Board.Grid[row, col].Color)} ");
+                if (row == Board.Size && row != col) Console.Write($"{col + 1} ");
+            }
+            if (row < Board.Size) Console.WriteLine($"{row + 1} ");
+        }
+    }
+    private char PieceColorMap(PieceColor color) // Helper method for Display to map the piece's color to a character 
+    {
+        return color switch
+        {
+            PieceColor.Black => 'x',
+            PieceColor.None => '.',
+            PieceColor.White => 'o'
+        };
+    }
 }
 
 class Program
