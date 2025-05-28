@@ -1,87 +1,135 @@
 ﻿public struct Position
 {
-    public int Row;
-    public int Col;
+    public int Row { get; }
+    public int Col { get; }
+    public Position(int row, int col)
+    {
+        Row = row;
+        Col = col;
+    }
 }
 public enum PieceColor
 {
     Black = 1,
+    None = 0,
     White = -1
-}
-public interface IPlayer
-{
-    string name();
-    PieceColor color();
 }
 public interface IPiece
 {
-    PieceColor color();
-}
-public interface IBoard
-{
-    IPiece[,] Grid();
-    int size();
-    void initialize();
-    bool isInBounds(Position pos);
+    public PieceColor Color { get; }
 }
 
-public class Player
+public class Piece : IPiece
 {
-    string Name;
-    PieceColor Color;
-    Player(string name, PieceColor color)
+    public PieceColor Color { get; }
+    public Piece(PieceColor color)
+    {
+        Color = color;
+    }
+}
+
+public interface IPlayer
+{
+    public string Name { get; }
+    public PieceColor Color{ get; }
+}
+
+public class Player : IPlayer
+{
+    public string Name { get; }
+    public PieceColor Color{ get; }
+    public Player(string name, PieceColor color)
     {
         Name = name;
         Color = color;
     }
 }
 
-public class Board
+public interface IBoard
 {
-    IPiece[,] Grid;
-    int Size;
-    Board(IPiece[,] grid, int size)
+    public IPiece[,] Grid { get; }
+    public int Size { get; }
+    public void Initialize();
+    public bool IsInBounds(Position pos);
+}
+
+public class Board : IBoard
+{
+    public IPiece[,] Grid { get; }
+    public int Size { get; }
+    public Board(int size)
     {
-        Grid = grid;
-        Size = size;
+        // TODO Board
+    }
+    public void Initialize()
+    {
+        // TODO
+        Console.WriteLine("TODO Initialize : Board");
+    }
+    public bool IsInBounds(Position pos)
+    {
+        // TODO
+        Console.WriteLine("TODO IsInBound : Board");
+        return true;
     }
 }
 
-public class Piece
-{
-    PieceColor Color;
-    Piece(PieceColor color)
-    {
-        Color = color;
-    }
-}
 public class GameController
 {
-    IBoard Board;
-    List<IPlayer> Players;
-    int _currentPlayerIndex;
-    List<Position> _directions;
-    GameController(List<IPlayer> players, IBoard board)
+    public IBoard Board;
+    public List<IPlayer> Players;
+    public IPlayer currentPlayer;
+    private int _currentPlayerIndex;
+    private List<Position> _directions;
+    public GameController(List<IPlayer> players, IBoard board)
     {
         Players = players;
         Board = board;
     }
-    public void StartGame() { }
+    public void StartGame()
+    {
+        // TODO
+    }
     public bool GameOver()
     {
+        // TODO
         return true;
     }
-    public void MakeMove(Position pos) { }
+    public void MakeMove(Position pos)
+    {
+        // TODO
+    }
     public bool IsValidMove(Position pos, PieceColor color)
     {
+        // TODO
         return true;
     }
     public List<Position> GetValidMove(PieceColor color)
     {
+        // TODO
         return null;
     }
-    public void PlacePiece(Position pos, PieceColor color) { }
-    public void FlipPiece(Position pos, PieceColor color) { }
+    public void PlacePiece(Position pos, PieceColor color)
+    {
+        // TODO
+    }
+    public void FlipPiece(Position pos, PieceColor color)
+    {
+        // TODO
+    }
     public void SwitchPlayer() { }
-    // public void CountPieces(out int black, out int white){}
+    public void CountPieces(out int black, out int white)
+    {
+        // TODO
+        black = 0;
+        white = 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        // TODO
+    }
 }
