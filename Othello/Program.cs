@@ -1,4 +1,6 @@
-﻿public struct Position
+﻿using System.Drawing;
+
+public struct Position
 {
     public int Row { get; }
     public int Col { get; }
@@ -99,19 +101,21 @@ public class GameController
     }
     public void StartGame()
     {
+        int black = 0, white = 0; // Count of black and white pieces
         Board.Initialize();
         _currentPlayerIndex = 0;
         currentPlayer = Players[_currentPlayerIndex];
         isGameOver = false;
         while (!isGameOver)
         {
-            DisplayBoard();
-            int row;
-            int col;
+            CountPieces(out black, out white);
+            Display(black, white);
             string inputRow;
-            // string[] splitInput;
             string inputCol;
             bool isSuccessInputRow = false, isSuccessInputCol = false;
+            int row;
+            int col;
+            Position pos;
             while (!isSuccessInputRow || !isSuccessInputCol)
             {
                 Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
@@ -120,10 +124,12 @@ public class GameController
                 inputCol = Console.ReadLine();
                 isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
                 isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
-                Position pos = new Position(row, col);
-                Console.WriteLine($"row: {pos.Row}, col: {pos.Col}");
+                pos = new Position(row, col);
+                PlacePiece(pos, currentPlayer.Color);
             }
             SwitchPlayer();
+            CountPieces(out black, out white);
+            Display(black, white);
             // int inputCol = int.Parse(split[1].Trim());
             isGameOver = true;
         }
@@ -149,7 +155,7 @@ public class GameController
     }
     public void PlacePiece(Position pos, PieceColor color)
     {
-        // TODO
+        Board.Grid[pos.Row, pos.Col] = new Piece(color);
     }
     public void FlipPiece(Position pos, PieceColor color)
     {
@@ -161,14 +167,33 @@ public class GameController
         else _currentPlayerIndex++;
         currentPlayer = Players[_currentPlayerIndex];
     }
-    
+
     public void CountPieces(out int black, out int white)
     {
         // TODO
         black = 0;
         white = 0;
+        for (int row = 0; row < Board.Size; row++)
+        {
+            for (int col = 0; col < Board.Size; col++)
+            {
+                if (Board.Grid[row, col].Color == PieceColor.Black) black++;
+                else if (Board.Grid[row, col].Color == PieceColor.White) white++;
+            }
+        }
     }
-    public void DisplayBoard()
+    public void Display(int blackCount, int whiteCount)
+    {
+        Console.Clear();
+        Console.WriteLine("=========================");
+        Console.WriteLine("=========OTHELLO=========");
+        Console.WriteLine("=========================\n");
+        Console.WriteLine($"Count (x): {blackCount}, (o): {whiteCount}");
+        Console.WriteLine("-------------------------");
+        PrintBoard();
+        Console.WriteLine("-------------------------");
+    }
+    public void PrintBoard()
     {
         for (int row = 0; row <= Board.Size; row++)
         {
