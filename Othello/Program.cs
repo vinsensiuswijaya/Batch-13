@@ -112,26 +112,31 @@ public class GameController
             Display(black, white);
             string inputRow;
             string inputCol;
-            bool isSuccessInputRow = false, isSuccessInputCol = false;
             int row;
             int col;
-            Position pos;
-            while (!isSuccessInputRow || !isSuccessInputCol)
-            {
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
-                inputRow = Console.ReadLine();
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
-                inputCol = Console.ReadLine();
-                isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
-                isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
-                pos = new Position(row, col);
+            Position pos = new Position();
+            bool isValidMove = false;
+            while (!isValidMove)
+            {    
+                bool isSuccessInputRow = false, isSuccessInputCol = false;
+                while (!isSuccessInputRow || !isSuccessInputCol)
+                {
+                    Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
+                    inputRow = Console.ReadLine();
+                    Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
+                    inputCol = Console.ReadLine();
+                    isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
+                    isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
+                    pos = new Position(row, col);
+                    isValidMove = IsValidMove(pos, currentPlayer.Color);
+                    if (!isValidMove) Console.WriteLine("Position invalid! Please reenter position.");
+                }
                 PlacePiece(pos, currentPlayer.Color);
             }
             SwitchPlayer();
-            CountPieces(out black, out white);
-            Display(black, white);
-            // int inputCol = int.Parse(split[1].Trim());
-            isGameOver = true;
+            // CountPieces(out black, out white);
+            // Display(black, white);
+            // isGameOver = true;
         }
     }
     public bool GameOver()
@@ -170,7 +175,6 @@ public class GameController
 
     public void CountPieces(out int black, out int white)
     {
-        // TODO
         black = 0;
         white = 0;
         for (int row = 0; row < Board.Size; row++)
@@ -193,7 +197,7 @@ public class GameController
         PrintBoard();
         Console.WriteLine("-------------------------");
     }
-    public void PrintBoard()
+    private void PrintBoard()
     {
         for (int row = 0; row <= Board.Size; row++)
         {
