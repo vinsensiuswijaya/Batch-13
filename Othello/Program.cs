@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 
 public struct Position
 {
@@ -92,7 +93,16 @@ public class GameController
     public List<IPlayer> Players;
     public IPlayer currentPlayer;
     private int _currentPlayerIndex;
-    private List<Position> _directions;
+    private List<Position> _directions = new List<Position>{
+        new Position(-1, -1), 
+        new Position(-1, 0),
+        new Position(-1, 1),
+        new Position(0, -1),
+        new Position(0, 1),
+        new Position(1, -1),
+        new Position(1, 0),
+        new Position(1, 1)
+    };
     private bool isGameOver;
     public GameController(List<IPlayer> players, IBoard board)
     {
@@ -131,9 +141,8 @@ public class GameController
                     isValidMove = IsValidMove(pos, currentPlayer.Color);
                     if (!isValidMove) Console.WriteLine("Position invalid! Please reenter position.");
                 }
-                PlacePiece(pos, currentPlayer.Color);
             }
-            SwitchPlayer();
+            MakeMove(pos);
             // CountPieces(out black, out white);
             // Display(black, white);
             // isGameOver = true;
@@ -146,17 +155,68 @@ public class GameController
     }
     public void MakeMove(Position pos)
     {
-        // TODO
+        PlacePiece(pos, currentPlayer.Color);
+        // FlipPiece(position, color) Use loop to flip all the pieces?
+        SwitchPlayer();
     }
     public bool IsValidMove(Position pos, PieceColor color)
     {
-        // TODO
-        return true;
+        if (Board.Grid[pos.Row, pos.Col].Color != PieceColor.None) return false;
+        List<Position> validMoves = GetValidMove(color);
+        if (validMoves.Contains(pos)) return true;
+        else return false;
     }
     public List<Position> GetValidMove(PieceColor color)
     {
-        // TODO
-        return null;
+        List<Position> validMoves = new List<Position>();
+        PieceColor opponentColor = (currentPlayer.Color == PieceColor.Black) ? PieceColor.White : PieceColor.Black;
+
+        for (int row = 0; row < Board.Size; row++)
+        {
+            for (int col = 0; col < Board.Size; col++)
+            {
+                if (Board.Grid[row, col].Color != PieceColor.None)
+                {
+                    continue; // Skip squares that are not empty
+                }
+
+                bool foundValidLine = false;
+                foreach (Position dir in _directions)
+                {
+                    int r = row + dir.Row;
+                    int c = col + dir.Col;
+
+                    // Check for an adjacent opponent piece
+                    if (r < 0 || r >= Board.Size || c < 0 || c >= Board.Size || Board.Grid[r, c].Color != opponentColor)
+                    {
+                        continue;
+                    }
+
+                    // Trace along the line to find a friendly piece
+                    r += dir.Row;
+                    c += dir.Col;
+                    while (r >= 0 && r < Board.Size && c >= 0 && c <= Board.Size)
+                    {
+                        if (Board.Grid[r, c].Color == currentPlayer.Color)
+                        {
+                            // Found a valid line, add the move.
+                            validMoves.Add(new Position(row, col));
+                            foundValidLine = true;
+                            break; // Stop checking other directions for this square
+                        }
+                        if (Board.Grid[r, c].Color == PieceColor.None)
+                        {
+                            break; // Line is broken by an empty space
+                        }
+                        r += dir.Row;
+                        c += dir.Col;
+                    }
+                    if (foundValidLine) break; // Exit the direction loop and move to the next board square
+                }
+            }
+        }
+        
+        return validMoves;
     }
     public void PlacePiece(Position pos, PieceColor color)
     {
