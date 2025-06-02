@@ -91,14 +91,9 @@ public class GameController
     public IPlayer currentPlayer;
     private int _currentPlayerIndex;
     private List<Position> _directions = new List<Position>{
-        new Position(-1, -1), 
-        new Position(-1, 0),
-        new Position(-1, 1),
-        new Position(0, -1),
-        new Position(0, 1),
-        new Position(1, -1),
-        new Position(1, 0),
-        new Position(1, 1)
+        new Position(-1, -1), new Position(-1, 0), new Position(-1, 1),
+        new Position(0, -1),                       new Position(0, 1),
+        new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
     };
     private bool isGameOver;
     public GameController(List<IPlayer> players, IBoard board)
@@ -136,7 +131,7 @@ public class GameController
                     isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
                     pos = new Position(row, col);
                     isValidMove = IsValidMove(pos, currentPlayer.Color);
-                    if (!isValidMove) Console.WriteLine("Position invalid! Please reenter position.");
+                    if (!isValidMove) Console.WriteLine("Invalid position! Please reenter position.");
                 }
             }
             MakeMove(pos);
@@ -146,80 +141,91 @@ public class GameController
     }
     public bool IsGameOver()
     {
-        if (GetValidMove(PieceColor.Black).Count == 0 && GetValidMove(PieceColor.White).Count == 0) return true;
+        if (GetValidMoves(PieceColor.Black).Count == 0 && GetValidMoves(PieceColor.White).Count == 0) return true;
         else return false;
     }
     public void MakeMove(Position pos)
     {
         PlacePiece(pos, currentPlayer.Color);
-        // FlipPiece(position, color) Use loop to flip all the pieces?
+        FlipPiece(pos, currentPlayer.Color);
     }
     public bool IsValidMove(Position pos, PieceColor color)
     {
+        if (pos.Row < 0 || pos.Row >= Board.Size || pos.Col < 0 || pos.Col >= Board.Size) return false;
         if (Board.Grid[pos.Row, pos.Col].Color != PieceColor.None) return false;
-        List<Position> validMoves = GetValidMove(color);
-        if (validMoves.Contains(pos)) return true;
-        else return false;
+        foreach (Position dir in _directions)
+        {
+            List<Position> flipsInThisDirection = GetFlipsInSingleDirection(pos, dir, color);
+            if (flipsInThisDirection.Count > 0) return true;
+        }
+        return false;
     }
-    public List<Position> GetValidMove(PieceColor color)
+    public List<Position> GetValidMoves(PieceColor color)
     {
         List<Position> validMoves = new List<Position>();
-        PieceColor opponentColor = (currentPlayer.Color == PieceColor.Black) ? PieceColor.White : PieceColor.Black;
-
+        
         for (int row = 0; row < Board.Size; row++)
         {
             for (int col = 0; col < Board.Size; col++)
             {
-                if (Board.Grid[row, col].Color != PieceColor.None)
-                {
-                    continue; // Skip squares that are not empty
-                }
-
-                bool foundValidLine = false;
-                foreach (Position dir in _directions)
-                {
-                    int r = row + dir.Row;
-                    int c = col + dir.Col;
-
-                    // Check for an adjacent opponent piece
-                    if (r < 0 || r >= Board.Size || c < 0 || c >= Board.Size || Board.Grid[r, c].Color != opponentColor)
-                    {
-                        continue;
-                    }
-
-                    // Trace along the line to find a friendly piece
-                    r += dir.Row;
-                    c += dir.Col;
-                    while (r >= 0 && r < Board.Size && c >= 0 && c <= Board.Size)
-                    {
-                        if (Board.Grid[r, c].Color == currentPlayer.Color)
-                        {
-                            // Found a valid line, add the move.
-                            validMoves.Add(new Position(row, col));
-                            foundValidLine = true;
-                            break; // Stop checking other directions for this square
-                        }
-                        if (Board.Grid[r, c].Color == PieceColor.None)
-                        {
-                            break; // Line is broken by an empty space
-                        }
-                        r += dir.Row;
-                        c += dir.Col;
-                    }
-                    if (foundValidLine) break; // Exit the direction loop and move to the next board square
-                }
+                if (IsValidMove(new Position(row, col), color)) validMoves.Add(new Position(row, col));
             }
         }
-        
         return validMoves;
     }
+
+    public List<Position> GetFlipsInSingleDirection(Position pos, Position direction, PieceColor color)
+    {
+        List<Position> flipsInThisLine = new List<Position>();
+        PieceColor opponentColor = (color == PieceColor.Black) ? PieceColor.White : PieceColor.Black;
+
+        int r = pos.Row + direction.Row;
+        int c = pos.Col + direction.Col;
+
+        while (r >= 0 && r < Board.Size && c >= 0 && c < Board.Size)
+        {
+            if (Board.Grid[r, c].Color == opponentColor)
+            {
+                flipsInThisLine.Add(new Position(r, c));
+            }
+            else if (Board.Grid[r, c].Color == color)
+            {
+                // Valid line found if there were opponent pieces in between
+                return flipsInThisLine.Count > 0 ? flipsInThisLine : new List<Position>();
+            }
+            else // Empty square
+            {
+                return new List<Position>(); // Invalid line, no flips in this direction
+            }
+            r += direction.Row;
+            c += direction.Col;
+        }
+        // Reached the edge of the board without finding a capping player's piece
+        return new List<Position>();
+    }
+
+    public List<Position> GetFlankedPieces(Position pos, PieceColor color)
+    {
+        List<Position> allFlankedPieces = new List<Position>();
+        foreach (Position dir in _directions)
+        {
+            List<Position> lineFlips = GetFlipsInSingleDirection(pos, dir, color);
+            allFlankedPieces.AddRange(lineFlips);
+        }
+        return allFlankedPieces;
+    }
+
     public void PlacePiece(Position pos, PieceColor color)
     {
         Board.Grid[pos.Row, pos.Col] = new Piece(color);
     }
     public void FlipPiece(Position pos, PieceColor color)
     {
-        // TODO
+        List<Position> flankedPieces = GetFlankedPieces(pos, color);
+        foreach (Position piece in flankedPieces)
+        {
+            PlacePiece(piece, currentPlayer.Color);
+        }
     }
     public void SwitchPlayer()
     {
