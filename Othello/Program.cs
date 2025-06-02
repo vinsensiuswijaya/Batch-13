@@ -135,8 +135,8 @@ public class GameController
                 }
             }
             MakeMove(pos);
-            SwitchPlayer();
             isGameOver = IsGameOver();
+            if (!isGameOver) SwitchPlayer();
         }
     }
     public bool IsGameOver()
@@ -229,9 +229,17 @@ public class GameController
     }
     public void SwitchPlayer()
     {
-        if (_currentPlayerIndex == Players.Count - 1) _currentPlayerIndex = 0;
-        else _currentPlayerIndex++;
-        currentPlayer = Players[_currentPlayerIndex];
+        IPlayer opponent = Players[(_currentPlayerIndex + 1) % Players.Count];
+        if (GetValidMoves(opponent.Color).Count > 0)
+        {
+            _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
+            currentPlayer = Players[_currentPlayerIndex];
+        }
+        else
+        {
+            Console.WriteLine($"{opponent.Name} has no valid move. {opponent.Name}'s turn is skipped");
+            Console.ReadKey();
+        }
     }
 
     public void CountPieces(out int black, out int white)
