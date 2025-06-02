@@ -1,9 +1,10 @@
 ﻿Console.Write("Input Number: ");
 int number = int.Parse(Console.ReadLine());
-bool isChecked = false;
+bool isChecked;
 
 for (int i = 1; i <= number; i++)
 {
+    isChecked = false;
     if (i % 3 == 0) Printer("foo");
     if (i % 4 == 0) Printer("baz");
     if (i % 5 == 0) Printer("bar");
