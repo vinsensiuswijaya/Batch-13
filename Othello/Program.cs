@@ -80,7 +80,7 @@ public class Board : IBoard
     }
     public bool IsInBounds(Position pos)
     {
-        return pos.Col > 0 && pos.Col < Size && pos.Row > 0 && pos.Row < Size;
+        return pos.Col >= 0 && pos.Col < Size && pos.Row >= 0 && pos.Row < Size;
     }
 }
 
@@ -112,32 +112,46 @@ public class GameController
         {
             CountPieces(out black, out white);
             Display(black, white);
-            string inputRow;
-            string inputCol;
-            int row;
-            int col;
+
+            if (GetValidMoves(currentPlayer.Color).Count == 0)
+            {
+                Console.WriteLine($"{currentPlayer.Name} has no valid move. {currentPlayer.Name}'s turn is skipped");
+                Console.ReadKey();
+                SwitchPlayer();
+                continue;
+            }
+
+            int row, col;
             Position pos = new Position();
             bool isValidMove = false;
             while (!isValidMove)
             {
-                bool isSuccessInputRow = false, isSuccessInputCol = false;
-                while (!isSuccessInputRow || !isSuccessInputCol)
+                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
+                string inputRow = Console.ReadLine();
+                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
+                string inputCol = Console.ReadLine();
+                bool isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
+                bool isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
+
+                if (!isSuccessInputRow || !isSuccessInputCol)
                 {
-                    Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
-                    inputRow = Console.ReadLine();
-                    Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
-                    inputCol = Console.ReadLine();
-                    isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
-                    isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
-                    pos = new Position(row, col);
-                    isValidMove = IsValidMove(pos, currentPlayer.Color);
-                    if (!isValidMove) Console.WriteLine("Invalid position! Please reenter position.");
+                    Console.WriteLine("Invalid input! Please enter numbers for row and column.");
+                    continue;
                 }
+
+                pos = new Position(row, col);
+                isValidMove = IsValidMove(pos, currentPlayer.Color);
+                if (!isValidMove) Console.WriteLine("Invalid position! Please reenter position.");
             }
             MakeMove(pos);
             isGameOver = IsGameOver();
             if (!isGameOver) SwitchPlayer();
         }
+        string winner;
+        if (black > white) winner = Players.First(p => p.Color == PieceColor.Black).Name;
+        else if (white > black) winner = Players.First(p => p.Color == PieceColor.White).Name;
+        else winner = "It's a tie!";
+        Console.WriteLine($"Game Over! {(winner == "It's a tie!" ? winner : winner + " Wins!")}");
     }
     public bool IsGameOver()
     {
@@ -151,7 +165,7 @@ public class GameController
     }
     public bool IsValidMove(Position pos, PieceColor color)
     {
-        if (pos.Row < 0 || pos.Row >= Board.Size || pos.Col < 0 || pos.Col >= Board.Size) return false;
+        if (!Board.IsInBounds(pos)) return false;
         if (Board.Grid[pos.Row, pos.Col].Color != PieceColor.None) return false;
         foreach (Position dir in _directions)
         {
@@ -224,22 +238,13 @@ public class GameController
         List<Position> flankedPieces = GetFlankedPieces(pos, color);
         foreach (Position piece in flankedPieces)
         {
-            PlacePiece(piece, currentPlayer.Color);
+            PlacePiece(piece, color);
         }
     }
     public void SwitchPlayer()
     {
-        IPlayer opponent = Players[(_currentPlayerIndex + 1) % Players.Count];
-        if (GetValidMoves(opponent.Color).Count > 0)
-        {
-            _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
-            currentPlayer = Players[_currentPlayerIndex];
-        }
-        else
-        {
-            Console.WriteLine($"{opponent.Name} has no valid move. {opponent.Name}'s turn is skipped");
-            Console.ReadKey();
-        }
+        _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
+        currentPlayer = Players[_currentPlayerIndex];
     }
 
     public void CountPieces(out int black, out int white)
@@ -268,16 +273,22 @@ public class GameController
     }
     private void PrintBoard()
     {
-        for (int row = 0; row <= Board.Size; row++)
+        Console.Write("  ");
+        for (int col = 0; col < Board.Size; col++)
         {
-            for (int col = 0; col <= Board.Size; col++)
-            {
-                if (row < Board.Size && col < Board.Size) Console.Write($"{PieceColorMap(Board.Grid[row, col].Color)} ");
-                if (row == Board.Size && row != col) Console.Write($"{col} ");
-            }
-            if (row < Board.Size) Console.WriteLine($"{row} ");
+            Console.Write($"{col} ");
         }
         Console.WriteLine();
+
+        for (int row = 0; row < Board.Size; row++)
+        {
+            Console.Write($"{row} ");
+            for (int col = 0; col < Board.Size; col++)
+            {
+                Console.Write($"{PieceColorMap(Board.Grid[row, col].Color)} ");
+            }
+            Console.WriteLine();
+        }
     }
     private char PieceColorMap(PieceColor color) // Helper method for Display to map the piece's color to a character 
     {
@@ -294,13 +305,21 @@ class Program
 {
     static void Main()
     {
-        Board board = new Board(8);
-        List<IPlayer> players = new List<IPlayer>();
-        Player player1 = new Player("Player 1", PieceColor.Black);
-        Player player2 = new Player("Player 2", PieceColor.White);
-        players.Add(player1);
-        players.Add(player2);
-        GameController game = new GameController(players, board);
-        game.StartGame();
+        bool playAgain = true;
+        while (playAgain)
+        {
+            Board board = new Board(8);
+            List<IPlayer> players = new List<IPlayer>();
+            Player player1 = new Player("Player 1", PieceColor.Black);
+            Player player2 = new Player("Player 2", PieceColor.White);
+            players.Add(player1);
+            players.Add(player2);
+            GameController game = new GameController(players, board);
+            game.StartGame();
+
+            Console.Write("Play again? (y/n): ");
+            string input = Console.ReadLine();
+            playAgain = input.Trim().ToLower() == "y";
+        }
     }
 }
