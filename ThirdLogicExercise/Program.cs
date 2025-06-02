@@ -11,7 +11,7 @@ for (int i = 1; i <= number; i++)
     if (i % 7 == 0) Printer("jazz");
     if (i % 9 == 0) Printer("huzz");
     if (!isChecked) Console.Write(i);
-    Console.Write(", ");
+    if (i != number) Console.Write(", ");
 }
 
 void Printer(string output)
