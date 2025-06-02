@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-
-public struct Position
+﻿public struct Position
 {
     public int Row { get; }
     public int Col { get; }
@@ -127,7 +124,7 @@ public class GameController
             Position pos = new Position();
             bool isValidMove = false;
             while (!isValidMove)
-            {    
+            {
                 bool isSuccessInputRow = false, isSuccessInputCol = false;
                 while (!isSuccessInputRow || !isSuccessInputCol)
                 {
@@ -143,21 +140,19 @@ public class GameController
                 }
             }
             MakeMove(pos);
-            // CountPieces(out black, out white);
-            // Display(black, white);
-            // isGameOver = true;
+            SwitchPlayer();
+            isGameOver = IsGameOver();
         }
     }
-    public bool GameOver()
+    public bool IsGameOver()
     {
-        // TODO
-        return true;
+        if (GetValidMove(PieceColor.Black).Count == 0 && GetValidMove(PieceColor.White).Count == 0) return true;
+        else return false;
     }
     public void MakeMove(Position pos)
     {
         PlacePiece(pos, currentPlayer.Color);
         // FlipPiece(position, color) Use loop to flip all the pieces?
-        SwitchPlayer();
     }
     public bool IsValidMove(Position pos, PieceColor color)
     {
