@@ -95,7 +95,6 @@ public class GameController
         new Position(0, -1),                       new Position(0, 1),
         new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
     };
-    private bool isGameOver;
     public GameController(List<IPlayer> players, IBoard board)
     {
         Players = players;
@@ -107,50 +106,75 @@ public class GameController
         Board.Initialize();
         _currentPlayerIndex = 0;
         currentPlayer = Players[_currentPlayerIndex];
-        isGameOver = false;
+        bool isGameOver = false;
+
         while (!isGameOver)
         {
             CountPieces(out black, out white);
             Display(black, white);
 
-            if (GetValidMoves(currentPlayer.Color).Count == 0)
+            if (!HasValidMove(currentPlayer.Color))
             {
-                Console.WriteLine($"{currentPlayer.Name} has no valid move. {currentPlayer.Name}'s turn is skipped");
-                Console.ReadKey();
-                SwitchPlayer();
+                HandleNoValidMove();
                 continue;
             }
 
-            int row, col;
-            Position pos = new Position();
-            bool isValidMove = false;
-            while (!isValidMove)
-            {
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
-                string inputRow = Console.ReadLine();
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
-                string inputCol = Console.ReadLine();
-                bool isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
-                bool isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
-
-                if (!isSuccessInputRow || !isSuccessInputCol)
-                {
-                    Console.WriteLine("Invalid input! Please enter numbers for row and column.");
-                    continue;
-                }
-
-                pos = new Position(row, col);
-                isValidMove = IsValidMove(pos, currentPlayer.Color);
-                if (!isValidMove) Console.WriteLine("Invalid position! Please reenter position.");
-            }
+            Position pos = PromptForMove();
             MakeMove(pos);
+
             isGameOver = IsGameOver();
             if (!isGameOver) SwitchPlayer();
         }
+
+        Display(black, white);
+        AnnounceWinner(black, white);
+    }
+    private bool HasValidMove(PieceColor color)
+    {
+        return GetValidMoves(color).Count > 0;
+    }
+    private void HandleNoValidMove()
+    {
+        Console.WriteLine($"{currentPlayer.Name} has no valid move. {currentPlayer.Name}'s turn is skipped");
+        Console.ReadKey();
+        SwitchPlayer();
+    }
+    private Position PromptForMove()
+    {
+        int row, col;
+        while (true)
+        {
+            Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
+            string inputRow = Console.ReadLine();
+            Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
+            string inputCol = Console.ReadLine();
+
+            bool isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
+            bool isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
+
+            if (!isSuccessInputRow || !isSuccessInputCol)
+            {
+                Console.WriteLine("Invalid input! Please enter numbers for row and column.");
+                continue;
+            }
+
+            Position pos = new Position(row, col);
+            if (IsValidMove(pos, currentPlayer.Color))
+            {
+                return pos;
+            }
+            Console.WriteLine("Invalid position! Please reenter position.");
+        }   
+    }
+    private void AnnounceWinner(int black, int white)
+    {
         string winner;
-        if (black > white) winner = Players.First(p => p.Color == PieceColor.Black).Name;
-        else if (white > black) winner = Players.First(p => p.Color == PieceColor.White).Name;
-        else winner = "It's a tie!";
+        if (black > white)
+            winner = Players.First(p => p.Color == PieceColor.Black).Name;
+        else if (white > black)
+            winner = Players.First(p => p.Color == PieceColor.White).Name;
+        else
+            winner = "It's a tie!";
         Console.WriteLine($"Game Over! {(winner == "It's a tie!" ? winner : winner + " Wins!")}");
     }
     public bool IsGameOver()
