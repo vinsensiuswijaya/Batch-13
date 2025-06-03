@@ -10,7 +10,6 @@
             [7] = "jazz",
             [9] = "huzz"
         });
-        g1.AddRule(11, "har");
         Console.Write("Input number: ");
         int number = int.Parse(Console.ReadLine());
         g1.Print(number);
