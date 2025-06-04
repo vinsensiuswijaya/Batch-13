@@ -126,6 +126,7 @@ public class GameController
             if (!isGameOver) SwitchPlayer();
         }
 
+        CountPieces(out black, out white);
         Display(black, white);
         AnnounceWinner(black, white);
     }
