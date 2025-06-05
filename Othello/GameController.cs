@@ -2,15 +2,15 @@ namespace Othello
 {
     public class GameController
     {
-        public IBoard Board;
-        public List<IPlayer> Players;
-        public IPlayer currentPlayer;
+        public IBoard Board { get; set; }
+        public List<IPlayer> Players { get; set; }
+        public IPlayer CurrentPlayer { get; set; }
         private int _currentPlayerIndex;
-        private List<Position> _directions = new List<Position>{
+        private List<Position> _directions = [
         new Position(-1, -1), new Position(-1, 0), new Position(-1, 1),
         new Position(0, -1),                       new Position(0, 1),
         new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
-    };
+    ];
         public Action<string> OnMoveMade { get; set; }
 
         public GameController(List<IPlayer> players, IBoard board)
@@ -24,7 +24,7 @@ namespace Othello
             int black = 0, white = 0; // Count of black and white pieces
             Board.Initialize();
             _currentPlayerIndex = 0;
-            currentPlayer = Players[_currentPlayerIndex];
+            CurrentPlayer = Players[_currentPlayerIndex];
             bool isGameOver = false;
 
             while (!isGameOver)
@@ -32,7 +32,7 @@ namespace Othello
                 CountPieces(out black, out white);
                 Display(black, white);
 
-                if (!HasValidMove(currentPlayer.Color))
+                if (!HasValidMove(CurrentPlayer.Color))
                 {
                     HandleNoValidMove();
                     continue;
@@ -57,7 +57,7 @@ namespace Othello
 
         private void HandleNoValidMove()
         {
-            Console.WriteLine($"{currentPlayer.Name} has no valid move. {currentPlayer.Name}'s turn is skipped");
+            Console.WriteLine($"{CurrentPlayer.Name} has no valid move. {CurrentPlayer.Name}'s turn is skipped");
             Console.ReadKey();
             SwitchPlayer();
         }
@@ -67,9 +67,9 @@ namespace Othello
             int row, col;
             while (true)
             {
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input row: ");
+                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), Input row: ");
                 string inputRow = Console.ReadLine();
-                Console.Write($"{currentPlayer.Name} ({PieceColorMap(currentPlayer.Color)}), Input column: ");
+                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), Input column: ");
                 string inputCol = Console.ReadLine();
 
                 bool isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
@@ -82,7 +82,7 @@ namespace Othello
                 }
 
                 Position pos = new Position(row, col);
-                if (IsValidMove(pos, currentPlayer.Color))
+                if (IsValidMove(pos, CurrentPlayer.Color))
                 {
                     return pos;
                 }
@@ -110,9 +110,9 @@ namespace Othello
 
         public void MakeMove(Position pos)
         {
-            PlacePiece(pos, currentPlayer.Color);
-            FlipPiece(pos, currentPlayer.Color);
-            OnMoveMade?.Invoke($"{currentPlayer.Name} made a move on ({pos.Row}, {pos.Col})");
+            PlacePiece(pos, CurrentPlayer.Color);
+            FlipPiece(pos, CurrentPlayer.Color);
+            OnMoveMade?.Invoke($"{CurrentPlayer.Name} made a move on ({pos.Row}, {pos.Col})");
         }
 
         public bool IsValidMove(Position pos, PieceColor color)
@@ -199,7 +199,7 @@ namespace Othello
         public void SwitchPlayer()
         {
             _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
-            currentPlayer = Players[_currentPlayerIndex];
+            CurrentPlayer = Players[_currentPlayerIndex];
         }
 
         public void CountPieces(out int black, out int white)
