@@ -6,11 +6,13 @@ namespace Othello
         public List<IPlayer> Players { get; set; }
         public IPlayer CurrentPlayer { get; set; }
         private int _currentPlayerIndex;
+
         private List<Position> _directions = [
-        new Position(-1, -1), new Position(-1, 0), new Position(-1, 1),
-        new Position(0, -1),                       new Position(0, 1),
-        new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
-    ];
+            new Position(-1, -1), new Position(-1, 0), new Position(-1, 1),
+            new Position(0, -1),                       new Position(0, 1),
+            new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
+        ];
+
         public Action<string> OnMoveMade { get; set; }
 
         public GameController(List<IPlayer> players, IBoard board)
@@ -21,11 +23,12 @@ namespace Othello
 
         public void StartGame()
         {
-            int black = 0, white = 0; // Count of black and white pieces
-            Board.Initialize();
+            int black, white; // Count of black and white pieces
             _currentPlayerIndex = 0;
             CurrentPlayer = Players[_currentPlayerIndex];
             bool isGameOver = false;
+            
+            Board.Initialize();
 
             while (!isGameOver)
             {
@@ -64,13 +67,23 @@ namespace Othello
 
         private Position PromptForMove()
         {
+            // Note: Displayed coordinates are 1-based for user-friendliness.
+            // Internally, all logic uses 0-based indices.
             int row, col;
             while (true)
             {
-                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), Input row: ");
-                string inputRow = Console.ReadLine();
-                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), Input column: ");
-                string inputCol = Console.ReadLine();
+                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), input position (row, col): ");
+                string inputPos = Console.ReadLine();
+                string[] inputRowCol = inputPos.Split(",");
+
+                if (inputRowCol.Count() != 2)
+                {
+                    Console.WriteLine("Invalid input! Please enter numbers for row and column.");
+                    continue;
+                }
+
+                string inputRow = inputRowCol[0];
+                string inputCol = inputRowCol[1];
 
                 bool isSuccessInputRow = int.TryParse(inputRow.Trim(), out row);
                 bool isSuccessInputCol = int.TryParse(inputCol.Trim(), out col);
@@ -80,6 +93,10 @@ namespace Othello
                     Console.WriteLine("Invalid input! Please enter numbers for row and column.");
                     continue;
                 }
+
+                // Convert to 0-based index
+                row -= 1;
+                col -= 1;
 
                 Position pos = new Position(row, col);
                 if (IsValidMove(pos, CurrentPlayer.Color))
@@ -112,7 +129,7 @@ namespace Othello
         {
             PlacePiece(pos, CurrentPlayer.Color);
             FlipPiece(pos, CurrentPlayer.Color);
-            OnMoveMade?.Invoke($"{CurrentPlayer.Name} made a move on ({pos.Row}, {pos.Col})");
+            OnMoveMade?.Invoke($"{CurrentPlayer.Name} made a move on ({pos.Row + 1}, {pos.Col + 1})"); // 1-based row display
         }
 
         public bool IsValidMove(Position pos, PieceColor color)
@@ -146,16 +163,16 @@ namespace Othello
             List<Position> flipsInThisLine = new List<Position>();
             PieceColor opponentColor = color == PieceColor.Black ? PieceColor.White : PieceColor.Black;
 
-            int r = pos.Row + direction.Row;
-            int c = pos.Col + direction.Col;
+            int row = pos.Row + direction.Row;
+            int col = pos.Col + direction.Col;
 
-            while (r >= 0 && r < Board.Size && c >= 0 && c < Board.Size)
+            while (Board.IsInBounds(new Position(row, col)))
             {
-                if (Board.Grid[r, c].Color == opponentColor)
+                if (Board.Grid[row, col].Color == opponentColor)
                 {
-                    flipsInThisLine.Add(new Position(r, c));
+                    flipsInThisLine.Add(new Position(row, col));
                 }
-                else if (Board.Grid[r, c].Color == color)
+                else if (Board.Grid[row, col].Color == color)
                 {
                     // Valid line found if there were opponent pieces in between
                     return flipsInThisLine.Count > 0 ? flipsInThisLine : new List<Position>();
@@ -164,8 +181,8 @@ namespace Othello
                 {
                     return new List<Position>(); // Invalid line, no flips in this direction
                 }
-                r += direction.Row;
-                c += direction.Col;
+                row += direction.Row;
+                col += direction.Col;
             }
             // Reached the edge of the board without finding a capping player's piece
             return new List<Position>();
@@ -219,41 +236,67 @@ namespace Othello
         public void Display(int blackCount, int whiteCount)
         {
             // Console.Clear();
-            Console.WriteLine("=========================");
-            Console.WriteLine("=========OTHELLO=========");
-            Console.WriteLine("=========================\n");
-            Console.WriteLine($"Count (X): {blackCount}, (O): {whiteCount}");
-            Console.WriteLine("-------------------------");
+            Console.WriteLine("\n=========================================");
+            Console.WriteLine("================ OTHELLO ================");
+            Console.WriteLine("=========================================");
+            Console.WriteLine($"  Count ({PieceColorMap(PieceColor.Black)}): {blackCount}, ({PieceColorMap(PieceColor.White)}): {whiteCount}");
             PrintBoard();
-            Console.WriteLine("-------------------------");
         }
 
         private void PrintBoard()
         {
-            Console.Write("  ");
-            for (int col = 0; col < Board.Size; col++)
-            {
-                Console.Write($"{col} ");
-            }
-            Console.WriteLine();
+            // Note: Board display uses 1-based coordinates for user-friendliness.
+            // Internally, all logic and data structures use 0-based indices.
+            // When displaying, add 1 to row and column numbers.
+            List<Position> availableMoves = GetValidMoves(CurrentPlayer.Color);
+            
+            PrintSeparatorLine(Board.Size);
+            PrintHeaderRow(Board.Size);
+            PrintSeparatorLine(Board.Size);
 
             for (int row = 0; row < Board.Size; row++)
             {
-                Console.Write($"{row} ");
+                Console.Write($"  | {row + 1} |"); // 1-based row display
                 for (int col = 0; col < Board.Size; col++)
                 {
-                    Console.Write($"{PieceColorMap(Board.Grid[row, col].Color)} ");
+                    if (availableMoves.Contains(new Position(row, col)))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write(" * ");
+                        Console.ResetColor();
+                        Console.Write("|");
+                    }
+                    else
+                    {
+                        Console.Write($" {PieceColorMap(Board.Grid[row, col].Color)} |");
+                    }
                 }
                 Console.WriteLine();
+                PrintSeparatorLine(Board.Size);
             }
+            Console.ResetColor();
         }
 
-        private char PieceColorMap(PieceColor color) // Helper method for Display to map the piece's color to a character 
+        private void PrintSeparatorLine(int boardSize)
+        {
+            Console.Write("  +---+");
+            for (int col = 0; col < boardSize; col++) Console.Write("---+");
+            Console.WriteLine();
+        }
+
+        private void PrintHeaderRow(int boardSize)
+        {
+            Console.Write("  |   |");
+            for (int col = 0; col < boardSize; col++) Console.Write($" {col + 1} |"); // 1-based row display
+            Console.WriteLine();
+        }
+
+        private char PieceColorMap(PieceColor color)
         {
             return color switch
             {
                 PieceColor.Black => 'X',
-                PieceColor.None => '.',
+                PieceColor.None => ' ',
                 PieceColor.White => 'O'
             };
         }

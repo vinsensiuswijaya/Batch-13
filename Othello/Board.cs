@@ -8,11 +8,11 @@ namespace Othello
         {
             Size = size;
             Grid = new IPiece[Size, Size];
-            for (int i = 0; i < Size; i++)
+            for (int row = 0; row < Size; row++)
             {
-                for (int j = 0; j < Size; j++)
+                for (int col = 0; col < Size; col++)
                 {
-                    Grid[i, j] = new Piece(PieceColor.None);
+                    Grid[row, col] = new Piece(PieceColor.None);
                 }
             }
         }
