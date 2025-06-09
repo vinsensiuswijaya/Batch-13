@@ -8,13 +8,16 @@
             while (playAgain)
             {
                 Board board = new Board(8);
-                List<IPlayer> players = new List<IPlayer>();
-                Player player1 = new Player("Player 1", PieceColor.Black);
-                Player player2 = new Player("Player 2", PieceColor.White);
-                players.Add(player1);
-                players.Add(player2);
+
+                List<IPlayer> players =
+                [
+                    new Player("Player 1", PieceColor.Black),
+                    new Player("Player 2", PieceColor.White),
+                ];
+
                 GameController game = new GameController(players, board);
                 game.OnMoveMade = msg => Console.WriteLine(msg);
+
                 game.StartGame();
 
                 Console.Write("Play again? (y/n): ");

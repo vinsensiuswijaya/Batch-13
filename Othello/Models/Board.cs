@@ -18,11 +18,19 @@ namespace Othello
         }
         public void Initialize()
         {
+            // Default initialization
             int midGrid = Size / 2;
             Grid[midGrid - 1, midGrid - 1] = new Piece(PieceColor.White);
             Grid[midGrid - 1, midGrid] = new Piece(PieceColor.Black);
             Grid[midGrid, midGrid - 1] = new Piece(PieceColor.Black);
             Grid[midGrid, midGrid] = new Piece(PieceColor.White);
+
+            // Set up a simple board where Player 1 (Black) has no valid moves.
+            // Grid[0, 1] = new Piece(PieceColor.Black);
+            // Grid[0, 2] = new Piece(PieceColor.White);
+            // Grid[0, 3] = new Piece(PieceColor.White);
+            // Grid[0, 4] = new Piece(PieceColor.Black);
+
         }
         public bool IsInBounds(Position pos)
         {
