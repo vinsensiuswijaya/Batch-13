@@ -2,10 +2,11 @@ namespace Othello
 {
     public class GameController
     {
-        public IBoard Board { get; set; }
-        public List<IPlayer> Players { get; set; }
-        public IPlayer CurrentPlayer { get; set; }
+        private IBoard _board;
+        private List<IPlayer> _players;
+        private IPlayer _currentPlayer;
         private int _currentPlayerIndex;
+        private Display _display;
 
         private List<Position> _directions = [
             new Position(-1, -1), new Position(-1, 0), new Position(-1, 1),
@@ -13,43 +14,64 @@ namespace Othello
             new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
         ];
 
-        public Action<string> OnMoveMade { get; set; }
+        // private Action<Position, PieceColor> onMoveMade;
+        //TODO: nggak usah pakai parameter string, panggil method yang di make move (?)
 
         public GameController(List<IPlayer> players, IBoard board)
         {
-            Players = players;
-            Board = board;
+            _players = players;
+            _board = board;
+            _display = new Display(board);
+        }
+
+        public void InitializeBoard()
+        {
+            int midGrid = _board.Size / 2;
+            _board.Grid[midGrid - 1, midGrid - 1] = new Piece(PieceColor.White);
+            _board.Grid[midGrid - 1, midGrid] = new Piece(PieceColor.Black);
+            _board.Grid[midGrid, midGrid - 1] = new Piece(PieceColor.Black);
+            _board.Grid[midGrid, midGrid] = new Piece(PieceColor.White);
+
+            // Set up a simple board where Player 1 (Black) has no valid moves.
+            // _board.Grid[0, 1] = new Piece(PieceColor.Black);
+            // _board.Grid[0, 2] = new Piece(PieceColor.White);
+            // _board.Grid[0, 3] = new Piece(PieceColor.White);
+            // _board.Grid[0, 4] = new Piece(PieceColor.Black);
         }
 
         public void StartGame()
         {
-            int black, white; // Count of black and white pieces
+            // Count of black and white pieces
+            int black;
+            int white;
+
             _currentPlayerIndex = 0;
-            CurrentPlayer = Players[_currentPlayerIndex];
+            _currentPlayer = _players[_currentPlayerIndex];
             bool isGameOver = false;
-            
-            Board.Initialize();
+
+            InitializeBoard();
 
             while (!isGameOver)
             {
                 CountPieces(out black, out white);
-                Display(black, white);
+                _display.PrintBoard(black, white, _currentPlayer.Color, GetValidMoves(_currentPlayer.Color));
 
-                if (!HasValidMove(CurrentPlayer.Color))
+                if (!HasValidMove(_currentPlayer.Color))
                 {
                     HandleNoValidMove();
                     continue;
                 }
 
-                Position pos = PromptForMove();
-                MakeMove(pos);
+                Position position = PromptForMove();
+                MakeMove(position);
 
                 isGameOver = IsGameOver();
                 if (!isGameOver) SwitchPlayer();
             }
 
             CountPieces(out black, out white);
-            Display(black, white);
+            // Display(black, white);
+            _display.PrintBoard(black, white, _currentPlayer.Color, GetValidMoves(_currentPlayer.Color));
             AnnounceWinner(black, white);
         }
 
@@ -60,8 +82,8 @@ namespace Othello
 
         private void HandleNoValidMove()
         {
-            Console.WriteLine($"{CurrentPlayer.Name} has no valid move. {CurrentPlayer.Name}'s turn is skipped");
-            Console.ReadKey();
+            _display.Print($"{_currentPlayer.Name} has no valid move. {_currentPlayer.Name}'s turn is skipped");
+            _display.ReadInput();
             SwitchPlayer();
         }
 
@@ -72,13 +94,12 @@ namespace Othello
             int row, col;
             while (true)
             {
-                Console.Write($"{CurrentPlayer.Name} ({PieceColorMap(CurrentPlayer.Color)}), input position (row, col): ");
-                string inputPos = Console.ReadLine();
+                string inputPos = _display.ReadInput($"{_currentPlayer.Name} ({_display.PieceColorMap(_currentPlayer.Color)}), input position (row, col): ");
                 string[] inputRowCol = inputPos.Split(",");
 
                 if (inputRowCol.Count() != 2)
                 {
-                    Console.WriteLine("Invalid input! Please enter numbers for row and column.");
+                    _display.Print("Invalid input! Please enter numbers for row and column.");
                     continue;
                 }
 
@@ -90,7 +111,7 @@ namespace Othello
 
                 if (!isSuccessInputRow || !isSuccessInputCol)
                 {
-                    Console.WriteLine("Invalid input! Please enter numbers for row and column.");
+                    _display.Print("Invalid input! Please enter numbers for row and column.");
                     continue;
                 }
 
@@ -98,12 +119,12 @@ namespace Othello
                 row -= 1;
                 col -= 1;
 
-                Position pos = new Position(row, col);
-                if (IsValidMove(pos, CurrentPlayer.Color))
+                Position position = new Position(row, col);
+                if (IsValidMove(position, _currentPlayer.Color))
                 {
-                    return pos;
+                    return position;
                 }
-                Console.WriteLine("Invalid position! Please reenter position.");
+                _display.Print("Invalid position! Please reenter position.");
             }
         }
 
@@ -111,12 +132,12 @@ namespace Othello
         {
             string winner;
             if (black > white)
-                winner = Players.First(p => p.Color == PieceColor.Black).Name;
+                winner = _players.First(p => p.Color == PieceColor.Black).Name;
             else if (white > black)
-                winner = Players.First(p => p.Color == PieceColor.White).Name;
+                winner = _players.First(p => p.Color == PieceColor.White).Name;
             else
                 winner = "It's a tie!";
-            Console.WriteLine($"Game Over! {(winner == "It's a tie!" ? winner : winner + " Wins!")}");
+            _display.Print($"Game Over! {(winner == "It's a tie!" ? winner : winner + " Wins!")}");
         }
 
         public bool IsGameOver()
@@ -125,20 +146,20 @@ namespace Othello
             else return false;
         }
 
-        public void MakeMove(Position pos)
+        public void MakeMove(Position position)
         {
-            PlacePiece(pos, CurrentPlayer.Color);
-            FlipPiece(pos, CurrentPlayer.Color);
-            OnMoveMade?.Invoke($"{CurrentPlayer.Name} made a move on ({pos.Row + 1}, {pos.Col + 1})"); // 1-based row display
+            PlacePiece(position, _currentPlayer.Color);
+            FlipPiece(position, _currentPlayer.Color);
+            // onMoveMade?.Invoke($"{currentPlayer.Name} made a move on ({position.Row + 1}, {position.Col + 1})"); // 1-based row display
         }
 
-        public bool IsValidMove(Position pos, PieceColor color)
+        public bool IsValidMove(Position position, PieceColor color)
         {
-            if (!Board.IsInBounds(pos)) return false;
-            if (Board.Grid[pos.Row, pos.Col].Color != PieceColor.None) return false;
+            if (!_board.IsInBounds(position)) return false;
+            if (_board.Grid[position.Row, position.Col].Color != PieceColor.None) return false;
             foreach (Position dir in _directions)
             {
-                List<Position> flipsInThisDirection = GetFlipsInSingleDirection(pos, dir, color);
+                List<Position> flipsInThisDirection = GetFlipsInSingleDirection(position, dir, color);
                 if (flipsInThisDirection.Count > 0) return true;
             }
             return false;
@@ -148,9 +169,9 @@ namespace Othello
         {
             List<Position> validMoves = new List<Position>();
 
-            for (int row = 0; row < Board.Size; row++)
+            for (int row = 0; row < _board.Size; row++)
             {
-                for (int col = 0; col < Board.Size; col++)
+                for (int col = 0; col < _board.Size; col++)
                 {
                     if (IsValidMove(new Position(row, col), color)) validMoves.Add(new Position(row, col));
                 }
@@ -158,21 +179,21 @@ namespace Othello
             return validMoves;
         }
 
-        public List<Position> GetFlipsInSingleDirection(Position pos, Position direction, PieceColor color)
+        public List<Position> GetFlipsInSingleDirection(Position position, Position direction, PieceColor color)
         {
             List<Position> flipsInThisLine = new List<Position>();
             PieceColor opponentColor = color == PieceColor.Black ? PieceColor.White : PieceColor.Black;
 
-            int row = pos.Row + direction.Row;
-            int col = pos.Col + direction.Col;
+            int row = position.Row + direction.Row;
+            int col = position.Col + direction.Col;
 
-            while (Board.IsInBounds(new Position(row, col)))
+            while (_board.IsInBounds(new Position(row, col)))
             {
-                if (Board.Grid[row, col].Color == opponentColor)
+                if (_board.Grid[row, col].Color == opponentColor)
                 {
                     flipsInThisLine.Add(new Position(row, col));
                 }
-                else if (Board.Grid[row, col].Color == color)
+                else if (_board.Grid[row, col].Color == color)
                 {
                     // Valid line found if there were opponent pieces in between
                     return flipsInThisLine.Count > 0 ? flipsInThisLine : new List<Position>();
@@ -188,25 +209,25 @@ namespace Othello
             return new List<Position>();
         }
 
-        public List<Position> GetFlippedPieces(Position pos, PieceColor color)
+        public List<Position> GetFlippedPieces(Position position, PieceColor color)
         {
             List<Position> allFlankedPieces = new List<Position>();
             foreach (Position dir in _directions)
             {
-                List<Position> lineFlips = GetFlipsInSingleDirection(pos, dir, color);
+                List<Position> lineFlips = GetFlipsInSingleDirection(position, dir, color);
                 allFlankedPieces.AddRange(lineFlips);
             }
             return allFlankedPieces;
         }
 
-        public void PlacePiece(Position pos, PieceColor color)
+        public void PlacePiece(Position position, PieceColor color)
         {
-            Board.Grid[pos.Row, pos.Col] = new Piece(color);
+            _board.Grid[position.Row, position.Col] = new Piece(color);
         }
 
-        public void FlipPiece(Position pos, PieceColor color)
+        public void FlipPiece(Position position, PieceColor color)
         {
-            List<Position> flankedPieces = GetFlippedPieces(pos, color);
+            List<Position> flankedPieces = GetFlippedPieces(position, color);
             foreach (Position piece in flankedPieces)
             {
                 PlacePiece(piece, color);
@@ -215,90 +236,22 @@ namespace Othello
 
         public void SwitchPlayer()
         {
-            _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
-            CurrentPlayer = Players[_currentPlayerIndex];
+            _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
+            _currentPlayer = _players[_currentPlayerIndex];
         }
 
         public void CountPieces(out int black, out int white)
         {
             black = 0;
             white = 0;
-            for (int row = 0; row < Board.Size; row++)
+            for (int row = 0; row < _board.Size; row++)
             {
-                for (int col = 0; col < Board.Size; col++)
+                for (int col = 0; col < _board.Size; col++)
                 {
-                    if (Board.Grid[row, col].Color == PieceColor.Black) black++;
-                    else if (Board.Grid[row, col].Color == PieceColor.White) white++;
+                    if (_board.Grid[row, col].Color == PieceColor.Black) black++;
+                    else if (_board.Grid[row, col].Color == PieceColor.White) white++;
                 }
             }
-        }
-
-        public void Display(int blackCount, int whiteCount)
-        {
-            // Console.Clear();
-            Console.WriteLine("\n=========================================");
-            Console.WriteLine("================ OTHELLO ================");
-            Console.WriteLine("=========================================");
-            Console.WriteLine($"  Count ({PieceColorMap(PieceColor.Black)}): {blackCount}, ({PieceColorMap(PieceColor.White)}): {whiteCount}");
-            PrintBoard();
-        }
-
-        private void PrintBoard()
-        {
-            // Note: Board display uses 1-based coordinates for user-friendliness.
-            // Internally, all logic and data structures use 0-based indices.
-            // When displaying, add 1 to row and column numbers.
-            List<Position> availableMoves = GetValidMoves(CurrentPlayer.Color);
-            
-            PrintSeparatorLine(Board.Size);
-            PrintHeaderRow(Board.Size);
-            PrintSeparatorLine(Board.Size);
-
-            for (int row = 0; row < Board.Size; row++)
-            {
-                Console.Write($"  | {row + 1} |"); // 1-based row display
-                for (int col = 0; col < Board.Size; col++)
-                {
-                    if (availableMoves.Contains(new Position(row, col)))
-                    {
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(" * ");
-                        Console.ResetColor();
-                        Console.Write("|");
-                    }
-                    else
-                    {
-                        Console.Write($" {PieceColorMap(Board.Grid[row, col].Color)} |");
-                    }
-                }
-                Console.WriteLine();
-                PrintSeparatorLine(Board.Size);
-            }
-            Console.ResetColor();
-        }
-
-        private void PrintSeparatorLine(int boardSize)
-        {
-            Console.Write("  +---+");
-            for (int col = 0; col < boardSize; col++) Console.Write("---+");
-            Console.WriteLine();
-        }
-
-        private void PrintHeaderRow(int boardSize)
-        {
-            Console.Write("  |   |");
-            for (int col = 0; col < boardSize; col++) Console.Write($" {col + 1} |"); // 1-based row display
-            Console.WriteLine();
-        }
-
-        private char PieceColorMap(PieceColor color)
-        {
-            return color switch
-            {
-                PieceColor.Black => 'X',
-                PieceColor.None => ' ',
-                PieceColor.White => 'O'
-            };
         }
     }
 }

@@ -4,7 +4,6 @@ namespace Othello
     {
         public IPiece[,] Grid { get; }
         public int Size { get; }
-        public void Initialize();
         public bool IsInBounds(Position pos);
     }
 }

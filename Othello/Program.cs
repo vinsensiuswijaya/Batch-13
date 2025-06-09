@@ -16,7 +16,6 @@
                 ];
 
                 GameController game = new GameController(players, board);
-                game.OnMoveMade = msg => Console.WriteLine(msg);
 
                 game.StartGame();
 
