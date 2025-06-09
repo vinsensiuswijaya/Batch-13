@@ -188,7 +188,7 @@ namespace Othello
             return new List<Position>();
         }
 
-        public List<Position> GetFlankedPieces(Position pos, PieceColor color)
+        public List<Position> GetFlippedPieces(Position pos, PieceColor color)
         {
             List<Position> allFlankedPieces = new List<Position>();
             foreach (Position dir in _directions)
@@ -206,7 +206,7 @@ namespace Othello
 
         public void FlipPiece(Position pos, PieceColor color)
         {
-            List<Position> flankedPieces = GetFlankedPieces(pos, color);
+            List<Position> flankedPieces = GetFlippedPieces(pos, color);
             foreach (Position piece in flankedPieces)
             {
                 PlacePiece(piece, color);
