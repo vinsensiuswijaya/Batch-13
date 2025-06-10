@@ -1,4 +1,8 @@
-namespace Othello
+using Othello.Interfaces;
+using Othello.Models;
+using Othello.Views;
+
+namespace Othello.Controllers
 {
     public class GameController
     {
@@ -14,7 +18,7 @@ namespace Othello
             new Position(1, -1),  new Position(1, 0),  new Position(1, 1)
         ];
 
-        // private Action<Position, PieceColor> onMoveMade;
+        public Action<Position, IPlayer> onMoveMade;
         //TODO: nggak usah pakai parameter string, panggil method yang di make move (?)
 
         public GameController(List<IPlayer> players, IBoard board)
@@ -70,9 +74,7 @@ namespace Othello
             }
 
             CountPieces(out black, out white);
-            // Display(black, white);
             _display.PrintBoard(black, white, _currentPlayer.Color, GetValidMoves(_currentPlayer.Color));
-            AnnounceWinner(black, white);
         }
 
         private bool HasValidMove(PieceColor color)
@@ -128,8 +130,12 @@ namespace Othello
             }
         }
 
-        private void AnnounceWinner(int black, int white)
+        public void AnnounceWinner()
         {
+            int black;
+            int white;
+            CountPieces(out black, out white);
+
             string winner;
             if (black > white)
                 winner = _players.First(p => p.Color == PieceColor.Black).Name;
@@ -150,7 +156,7 @@ namespace Othello
         {
             PlacePiece(position, _currentPlayer.Color);
             FlipPiece(position, _currentPlayer.Color);
-            // onMoveMade?.Invoke($"{currentPlayer.Name} made a move on ({position.Row + 1}, {position.Col + 1})"); // 1-based row display
+            onMoveMade?.Invoke(position, _currentPlayer);
         }
 
         public bool IsValidMove(Position position, PieceColor color)

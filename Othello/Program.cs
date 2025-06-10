@@ -1,4 +1,8 @@
-﻿namespace Othello
+﻿using Othello.Interfaces;
+using Othello.Models;
+using Othello.Controllers;
+
+namespace Othello
 {
     class Program
     {
@@ -17,7 +21,10 @@
 
                 GameController game = new GameController(players, board);
 
+                game.onMoveMade += (position, player) => Console.WriteLine($"{player.Name} made a move on ({position.Row + 1}, {position.Col + 1})"); // 1-based row position
+
                 game.StartGame();
+                game.AnnounceWinner();
 
                 Console.Write("Play again? (y/n): ");
                 string input = Console.ReadLine();

@@ -1,4 +1,4 @@
-namespace Othello
+namespace Othello.Interfaces
 {
     public interface IBoard
     {

@@ -1,4 +1,6 @@
-namespace Othello
+using Othello.Interfaces;
+
+namespace Othello.Models
 {
     public class Board : IBoard
     {

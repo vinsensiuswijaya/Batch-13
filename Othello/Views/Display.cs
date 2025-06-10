@@ -1,4 +1,6 @@
-namespace Othello
+using Othello.Interfaces;
+
+namespace Othello.Views
 {
     public class Display
     {
@@ -16,9 +18,26 @@ namespace Othello
                 PieceColor.None => ' '
             };
         }
-        public void PrintBoard(int blackCount, int whiteCount, PieceColor currentPlayerColor, List<Position> availableMoves)
+        public void Print(string message)
+        {
+            Console.WriteLine(message);
+        }
+        public void Clear()
         {
             Console.Clear();
+        }
+        public string ReadInput(string prompt)
+        {
+            Console.Write(prompt);
+            return Console.ReadLine();
+        }
+        public void ReadInput()
+        {
+            Console.ReadKey();
+        }
+        public void PrintBoard(int blackCount, int whiteCount, PieceColor currentPlayerColor, List<Position> availableMoves)
+        {
+            // Console.Clear();
             Console.WriteLine("\n=========================================");
             Console.WriteLine("================ OTHELLO ================");
             Console.WriteLine("=========================================");
@@ -65,23 +84,6 @@ namespace Othello
             Console.Write("  |   |");
             for (int col = 0; col < boardSize; col++) Console.Write($" {col + 1} |"); // 1-based row display
             Console.WriteLine();
-        }
-        public void Print(string message)
-        {
-            Console.WriteLine(message);
-        }
-        public void Clear()
-        {
-            Console.Clear();
-        }
-        public string ReadInput(string prompt)
-        {
-            Console.Write(prompt);
-            return Console.ReadLine();
-        }
-        public void ReadInput()
-        {
-            Console.ReadKey();
-        }
+        }     
     }
 }
