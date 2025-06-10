@@ -37,7 +37,6 @@ namespace Othello.Views
         }
         public void PrintBoard(int blackCount, int whiteCount, PieceColor currentPlayerColor, List<Position> availableMoves)
         {
-            // Console.Clear();
             Console.WriteLine("\n=========================================");
             Console.WriteLine("================ OTHELLO ================");
             Console.WriteLine("=========================================");

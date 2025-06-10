@@ -19,7 +19,6 @@ namespace Othello.Controllers
         ];
 
         public Action<Position, IPlayer> onMoveMade;
-        //TODO: nggak usah pakai parameter string, panggil method yang di make move (?)
 
         public GameController(List<IPlayer> players, IBoard board)
         {
@@ -35,12 +34,6 @@ namespace Othello.Controllers
             _board.Grid[midGrid - 1, midGrid] = new Piece(PieceColor.Black);
             _board.Grid[midGrid, midGrid - 1] = new Piece(PieceColor.Black);
             _board.Grid[midGrid, midGrid] = new Piece(PieceColor.White);
-
-            // Set up a simple board where Player 1 (Black) has no valid moves.
-            // _board.Grid[0, 1] = new Piece(PieceColor.Black);
-            // _board.Grid[0, 2] = new Piece(PieceColor.White);
-            // _board.Grid[0, 3] = new Piece(PieceColor.White);
-            // _board.Grid[0, 4] = new Piece(PieceColor.Black);
         }
 
         public void StartGame()
